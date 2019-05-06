@@ -11,11 +11,17 @@ import UIKit
 class TodoListViewController: UITableViewController {
 
     // MARK: - Instance Variables
-    var itemsArray = ["Buy Groceries", "Watch Avengers", "Go to School", "Play Fooball", "Eat Icecream"]
+    var itemsArray : [String] = ["Buy Groceries", "Watch Avengers", "Go to School", "Play Fooball", "Eat Icecream"]
+    
+    let itemsArrayKey = "itemsArray"
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        if let defaultsArray = UserDefaults.standard.array(forKey: itemsArrayKey) {
+            itemsArray = defaultsArray as! [String]
+        }
     }
 
     // MARK: - Table View Data Source
@@ -55,6 +61,8 @@ class TodoListViewController: UITableViewController {
         let alertAction = UIAlertAction(title: "Add Item", style: .default) { _ in
             
             self.itemsArray.append(textField.text!)
+            UserDefaults.standard.set(self.itemsArray, forKey: self.itemsArrayKey)
+            
             self.tableView.reloadData()
         }
         
