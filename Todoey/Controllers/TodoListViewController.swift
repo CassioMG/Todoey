@@ -7,18 +7,22 @@
 //
 
 import UIKit
+import CoreData
 
 class TodoListViewController: UITableViewController {
 
     // MARK: - Instance Variables
     var itemsArray = [TodoItem]()
-    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("TodoItems.plist")
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+    
+        let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        print(dataFilePath)
         
-        loadItemsFromFile()
+        loadItems()
     }
 
     // MARK: - Table View Data Source
@@ -52,7 +56,7 @@ class TodoListViewController: UITableViewController {
         
         item.done = !item.done
         
-        saveItemsToFile()
+        saveItems()
         
         tableView.deselectRow(at: indexPath, animated: true)
     }
@@ -66,10 +70,12 @@ class TodoListViewController: UITableViewController {
         
         let alertAction = UIAlertAction(title: "Add Item", style: .default) { _ in
             
-            let newItem = TodoItem(itemTitle: textField.text!)
+            let newItem = TodoItem(context: self.context)
+            newItem.title = textField.text!
+            
             self.itemsArray.append(newItem)
             
-            self.saveItemsToFile()
+            self.saveItems()
 
             self.tableView.reloadData()
         }
@@ -86,31 +92,23 @@ class TodoListViewController: UITableViewController {
     }
  
     // MARK: - Model Manipulation
-    func saveItemsToFile () {
-        
-        let encoder = PropertyListEncoder()
+    func saveItems () {
         
         do {
-            let data = try encoder.encode(itemsArray)
-            try data.write(to: dataFilePath!)
-            
+            try context.save()
         } catch {
-            print("ERROR ENCODING ITEMS ARRAY: ", error)
+            print("ERROR SAVING ITEMS ARRAY FROM CONTEXT: ", error)
         }
     }
     
-    func loadItemsFromFile () {
+    func loadItems () {
         
-        if let data = try? Data.init(contentsOf: dataFilePath!) {
+        let request : NSFetchRequest<TodoItem> = TodoItem.fetchRequest()
         
-            let decoder = PropertyListDecoder()
-            
-            do {
-                itemsArray = try decoder.decode([TodoItem].self, from: data)
-            } catch {
-                print("ERROR DENCODING ITEMS ARRAY: ", error)
-            }
-            
+        do {
+            itemsArray = try context.fetch(request)
+        } catch {
+            print("ERROR FETCHING ITEMS ARRAY FROM CONTEXT: ", error)
         }
     }
     
