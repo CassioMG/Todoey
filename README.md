@@ -1,2 +1,2 @@
 # Todoey
-Todo List app.
+A Todo List app to organize your tasks. ✓✓✓
