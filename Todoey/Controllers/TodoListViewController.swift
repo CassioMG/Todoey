@@ -14,17 +14,19 @@ class TodoListViewController: UITableViewController {
     // MARK: - Instance Variables
     var itemsArray = [TodoItem]()
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    var parentCategory : Category? {didSet { loadItems() }}
     
-    // MARK: - Lifecycle
+    // MARK: - Controller lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-    
-        let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
-        print(dataFilePath)
         
-        loadItems()
+        // Uncomment this to discover in which folder your data is being stored in the system
+        /*
+         let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+         print(dataFilePath)
+         */
     }
-
+    
     // MARK: - Table View Data Source
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return itemsArray.count
@@ -56,7 +58,7 @@ class TodoListViewController: UITableViewController {
         
         item.done = !item.done
         
-        saveItems()
+        saveItems(reloadData: false)
         
         tableView.deselectRow(at: indexPath, animated: true)
     }
@@ -72,12 +74,10 @@ class TodoListViewController: UITableViewController {
             
             let newItem = TodoItem(context: self.context)
             newItem.title = textField.text!
+            newItem.parentCategory = self.parentCategory
             
             self.itemsArray.append(newItem)
-            
             self.saveItems()
-
-            self.tableView.reloadData()
         }
         
         alertController.addTextField { (alertTextField) in
@@ -92,20 +92,32 @@ class TodoListViewController: UITableViewController {
     }
  
     // MARK: - Model Manipulation
-    func saveItems () {
+    func saveItems (reloadData: Bool? = true) {
         
         do {
             try context.save()
         } catch {
             print("ERROR SAVING ITEMS ARRAY FROM CONTEXT: ", error)
         }
+        
+        if reloadData == true {
+            tableView.reloadData()
+        }
     }
     
-    func loadItems (with request: NSFetchRequest<TodoItem> = TodoItem.fetchRequest()) {
+    func loadItems (with request: NSFetchRequest<TodoItem> = TodoItem.fetchRequest(), compoundPredicate: NSPredicate? = nil) {
+        
+        let categoryPredicate = NSPredicate(format: "parentCategory.name MATCHES %@", parentCategory!.name!)
+        
+        if compoundPredicate != nil {
+            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, compoundPredicate!])
+        } else {
+            request.predicate = categoryPredicate
+        }
         
         do {
             itemsArray = try context.fetch(request)
-            
+
         } catch {
             print("ERROR FETCHING ITEMS ARRAY FROM CONTEXT: ", error)
         }
@@ -122,12 +134,9 @@ extension TodoListViewController: UISearchBarDelegate {
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         
         let request : NSFetchRequest<TodoItem> = TodoItem.fetchRequest()
-        
-        request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
-        
         request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
         
-        loadItems(with: request)
+        loadItems(with: request, compoundPredicate: NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!))
     }
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
