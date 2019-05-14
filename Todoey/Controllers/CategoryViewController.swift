@@ -8,9 +8,8 @@
 
 import UIKit
 import RealmSwift
-import SwipeCellKit
 
-class CategoryViewController: UITableViewController {
+class CategoryViewController: SwipeTableViewController {
 
     // MARK: - Instance variables
     let realm = try! Realm()
@@ -34,8 +33,7 @@ class CategoryViewController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
 
-        let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath) as! SwipeTableViewCell
-        cell.delegate = self
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         cell.textLabel?.text = categories[indexPath.row].name
         
         return cell
@@ -47,14 +45,14 @@ class CategoryViewController: UITableViewController {
     }
     
     // MARK: - Data manipulation
-    func loadCategories () {
+    func loadCategories() {
         
         categories = realm.objects(Category.self)
         
         tableView.reloadData()
     }
     
-    func save (category: Category) {
+    func save(category: Category) {
         
         do {
             try realm.write {
@@ -66,6 +64,23 @@ class CategoryViewController: UITableViewController {
         
         tableView.reloadData()
     }
+    
+    override func deleteData(at indexPath: IndexPath) {
+        
+        if indexPath.row >= categories.count {
+            print("Couldn't delete data at indexPath: \(indexPath)")
+            return
+        }
+        
+        do {
+            try realm.write {
+                realm.delete(categories[indexPath.row])
+            }
+        } catch {
+            print("Error deleting object from Realm: \(error)")
+        }
+    }
+    
     
     // MARK: - Add new Categories
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
@@ -105,36 +120,4 @@ class CategoryViewController: UITableViewController {
     }
     
 
-}
-
-// MARK: - SwipeCell Delegate
-extension CategoryViewController: SwipeTableViewCellDelegate {
-    
-    func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath, for orientation: SwipeActionsOrientation) -> [SwipeAction]? {
-        guard orientation == .right else { return nil }
-        
-        let deleteAction = SwipeAction(style: .destructive, title: "Delete") { action, indexPath in
-            // handle action by updating model with deletion
-            
-            do {
-                try self.realm.write {
-                    self.realm.delete(self.categories[indexPath.row])
-                }
-            } catch {
-                print("Error deleting object from Realm: \(error)")
-            }
-        }
-        
-        // customize the action appearance
-        deleteAction.image = UIImage(named: "delete-icon")
-        
-        return [deleteAction]
-    }
-    
-    func tableView(_ tableView: UITableView, editActionsOptionsForRowAt indexPath: IndexPath, for orientation: SwipeActionsOrientation) -> SwipeOptions {
-        var options = SwipeOptions()
-        options.expansionStyle = .destructive
-        return options
-    }
-    
 }

@@ -9,7 +9,7 @@
 import UIKit
 import RealmSwift
 
-class TodoListViewController: UITableViewController {
+class TodoListViewController: SwipeTableViewController {
 
     // MARK: - Instance Variables
     let realm = try! Realm()
@@ -33,22 +33,16 @@ class TodoListViewController: UITableViewController {
     
     // MARK: - Table View Data Source
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return (todoItems.count > 0) ? todoItems.count : 1
+        return todoItems.count
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let cell = tableView.dequeueReusableCell(withIdentifier: "TodoItemCell", for: indexPath)
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         
-        if todoItems.count > 0 {
-            let item = todoItems[indexPath.row]
-            cell.textLabel?.text = item.title
-            cell.accessoryType = item.done ? .checkmark : .none
-            
-        } else {
-            cell.textLabel?.text = "No items added yet"
-            cell.accessoryType = .none
-        }
+        let item = todoItems[indexPath.row]
+        cell.textLabel?.text = item.title
+        cell.accessoryType = item.done ? .checkmark : .none
         
         return cell
     }
@@ -56,26 +50,21 @@ class TodoListViewController: UITableViewController {
     // MARK: - Table View Delegate
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
-        if todoItems.count > 0 {
-            
-            let item = todoItems[indexPath.row]
-            
-            let cell = tableView.cellForRow(at: indexPath)
-            
-            if item.done {
-                cell?.accessoryType = .none
-            } else {
-                cell?.accessoryType = .checkmark
+        let item = todoItems[indexPath.row]
+        let cell = tableView.cellForRow(at: indexPath)
+        
+        if item.done {
+            cell?.accessoryType = .none
+        } else {
+            cell?.accessoryType = .checkmark
+        }
+        
+        do {
+            try realm.write {
+                item.done = !item.done
             }
-
-            do {
-                try realm.write {
-                    item.done = !item.done
-                    // self.realm.delete(item)
-                }
-            } catch {
-                print("Error editing item: \(error)")
-            }
+        } catch {
+            print("Error editing item: \(error)")
         }
         
         tableView.deselectRow(at: indexPath, animated: true)
@@ -120,21 +109,6 @@ class TodoListViewController: UITableViewController {
     }
  
     // MARK: - Model Manipulation
-//    func update (shouldReloadTable: Bool? = true, operation:(Any?)->(Any?)) {
-//
-//        do {
-//            try realm.write {
-//                operation(nil)
-//            }
-//        } catch {
-//            print("Error saving new item: \(error)")
-//        }
-//
-//        if shouldReloadTable == true {
-//            tableView.reloadData()
-//        }
-//    }
-    
     func loadItems () {
         
         todoItems = parentCategory?.items.filter(NSPredicate(value: true))
@@ -142,6 +116,22 @@ class TodoListViewController: UITableViewController {
         tableView.reloadData()
     }
     
+    
+    override func deleteData(at indexPath: IndexPath) {
+        
+        if indexPath.row >= todoItems.count {
+            print("Couldn't delete data at indexPath: \(indexPath)")
+            return
+        }
+        
+        do {
+            try realm.write {
+                realm.delete(todoItems[indexPath.row])
+            }
+        } catch {
+            print("Error deleting object from Realm: \(error)")
+        }
+    }
     
 }
 
