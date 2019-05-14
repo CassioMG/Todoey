@@ -16,6 +16,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+       
+        // Launch Realm to check if there's any error while initialising it.
+        do { _ = try Realm() }
+        catch { print("Error initialising Realm: \(error)") }
+        
         return true
     }
 
