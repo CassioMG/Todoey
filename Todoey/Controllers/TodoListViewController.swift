@@ -44,7 +44,7 @@ class TodoListViewController: SwipeTableViewController {
         
         cell.textLabel?.text = item.title
         cell.accessoryType = item.done ? .checkmark : .none
-        cell.backgroundColor = HexColor(item.backgroundHexColor)
+        cell.backgroundColor = HexColor(parentCategory!.backgroundHexColor)?.darken(byPercentage: CGFloat(indexPath.row + 1) / CGFloat(2 * todoItems.count))
         cell.textLabel?.textColor = ContrastColorOf(cell.backgroundColor!, returnFlat: true)
         
         return cell
@@ -88,7 +88,6 @@ class TodoListViewController: SwipeTableViewController {
                     try self.realm.write {
                         let newItem = TodoItem()
                         newItem.title = textField.text!
-                        newItem.backgroundHexColor = RandomFlatColor().hexValue()
                         currentCategory.items.append(newItem)
                         
                         self.tableView.reloadData()

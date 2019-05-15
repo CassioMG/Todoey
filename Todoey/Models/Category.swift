@@ -10,7 +10,9 @@ import Foundation
 import RealmSwift
 
 class Category: TodoeyCell {
-        
+    
+    @objc dynamic var backgroundHexColor = "#FFFFFF"
+    
     let items = List<TodoItem>()
     
 }

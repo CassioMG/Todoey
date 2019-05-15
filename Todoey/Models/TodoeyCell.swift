@@ -13,6 +13,5 @@ class TodoeyCell: Object {
     
     @objc dynamic var dateCreated = Date()
     @objc dynamic var title = ""
-    @objc dynamic var backgroundHexColor = "#FFFFFF"
     
 }
