@@ -8,6 +8,7 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
 class CategoryViewController: SwipeTableViewController {
 
@@ -34,7 +35,11 @@ class CategoryViewController: SwipeTableViewController {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
 
         let cell = super.tableView(tableView, cellForRowAt: indexPath)
-        cell.textLabel?.text = categories[indexPath.row].name
+        let category = categories[indexPath.row]
+        
+        cell.textLabel?.text = category.title
+        cell.backgroundColor = HexColor(category.backgroundHexColor)
+        cell.textLabel?.textColor = ContrastColorOf(cell.backgroundColor!, returnFlat: true)
         
         return cell
     }
@@ -92,7 +97,8 @@ class CategoryViewController: SwipeTableViewController {
         let alertAction = UIAlertAction(title: "Add", style: .default) { _ in
             
             let newCategory = Category()
-            newCategory.name = newCategoryTextField.text!
+            newCategory.title = newCategoryTextField.text!
+            newCategory.backgroundHexColor = RandomFlatColor().hexValue()
             self.save(category: newCategory)
         }
         
@@ -114,7 +120,7 @@ class CategoryViewController: SwipeTableViewController {
             let selectedCategory = categories[tableView.indexPathForSelectedRow!.row]
             let todoListVC = (segue.destination as! TodoListViewController)
             
-            todoListVC.navigationItem.title = selectedCategory.name
+            todoListVC.navigationItem.title = selectedCategory.title
             todoListVC.parentCategory = selectedCategory
         }
     }

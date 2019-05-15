@@ -9,11 +9,9 @@
 import Foundation
 import RealmSwift
 
-class TodoItem: Object {
+class TodoItem: TodoeyCell {
     
-    @objc dynamic var title = ""
     @objc dynamic var done = false
-    @objc dynamic var dateCreated: Date = Date()
     
     let category = LinkingObjects(fromType: Category.self, property: "items")
     
