@@ -113,6 +113,7 @@ class CategoryViewController: SwipeTableViewController {
         
         alertController.addTextField { (textField) in
             textField.placeholder = "Create new category"
+            textField.autocapitalizationType = .words
             newCategoryTextField = textField
         }
         
