@@ -22,7 +22,14 @@ class CategoryViewController: SwipeTableViewController {
         
         loadCategories()
     }
-
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        // set the default navigation bar color for the app
+        updateNavigationBar(withFlatColor: FlatSkyBlue())
+    }
+    
     // MARK: - Table view data source
     override func numberOfSections(in tableView: UITableView) -> Int {
         return 1
@@ -46,7 +53,10 @@ class CategoryViewController: SwipeTableViewController {
 
     // MARK: - Table view delegate
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        
         performSegue(withIdentifier: "goToItems", sender: self)
+        
+        tableView.deselectRow(at: indexPath, animated: true)
     }
     
     // MARK: - Data manipulation
@@ -86,7 +96,6 @@ class CategoryViewController: SwipeTableViewController {
         }
     }
     
-    
     // MARK: - Add new Categories
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
         
@@ -120,7 +129,7 @@ class CategoryViewController: SwipeTableViewController {
             let selectedCategory = categories[tableView.indexPathForSelectedRow!.row]
             let todoListVC = (segue.destination as! TodoListViewController)
             
-            todoListVC.navigationItem.title = selectedCategory.title
+            todoListVC.title = selectedCategory.title
             todoListVC.parentCategory = selectedCategory
         }
     }

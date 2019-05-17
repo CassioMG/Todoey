@@ -11,8 +11,10 @@ import RealmSwift
 
 class TodoItem: TodoeyCell {
     
+    // is this item done?
     @objc dynamic var done = false
     
+    // relational reference to the category related to its item
     let category = LinkingObjects(fromType: Category.self, property: "items")
     
 }

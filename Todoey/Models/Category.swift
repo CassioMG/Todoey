@@ -11,8 +11,10 @@ import RealmSwift
 
 class Category: TodoeyCell {
     
+    // store the category background color, which will be used for its item list gradient colors
     @objc dynamic var backgroundHexColor = "#FFFFFF"
     
+    // relational reference to the items list related to its category
     let items = List<TodoItem>()
     
 }

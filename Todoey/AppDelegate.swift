@@ -8,7 +8,6 @@
 
 import UIKit
 import RealmSwift
-import ChameleonFramework
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -21,9 +20,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Launch Realm to check if there's any error while initialising it.
         do { _ = try Realm() }
         catch { print("Error initialising Realm: \(error)") }
-        
-        // Set global theme color (Aqua Color: #0096FF)
-        Chameleon.setGlobalThemeUsingPrimaryColor(HexColor("#0096FF"), with: UIContentStyle.contrast)
         
         return true
     }

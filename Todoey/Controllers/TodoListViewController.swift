@@ -14,23 +14,35 @@ class TodoListViewController: SwipeTableViewController {
 
     // MARK: - Instance Variables
     let realm = try! Realm()
-    var parentCategory : Category? {didSet {loadItems() }}
     var todoItems: Results<TodoItem>!
+    var parentCategory : Category? { didSet { loadItems() } }
+    
+    @IBOutlet weak var addButton: UIBarButtonItem!
+    @IBOutlet weak var searchBar: UISearchBar!
     
     // MARK: - Controller lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         
         // Uncomment this to discover in which folder your data is being stored in the system
-        /*
-         let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
-         print(dataFilePath)
-         
-         print(Realm.Configuration.defaultConfiguration.fileURL!)
-         */
-        
-        print(Realm.Configuration.defaultConfiguration.fileURL!)
+        // print(Realm.Configuration.defaultConfiguration.fileURL!)
     }
+        
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+    
+        // set the items list navigation bar color as the category color
+        let navBarColor = HexColor(parentCategory!.backgroundHexColor)!
+        updateNavigationBar(withFlatColor: navBarColor)
+        
+        // set the add button and search bar colors accordingly to the navigation bar color
+        addButton.tintColor = ContrastColorOf(navBarColor, returnFlat: true)
+        searchBar.backgroundImage = UIImage()
+        searchBar.backgroundColor = navBarColor
+        searchBar.tintColor = navBarColor
+    }
+
     
     // MARK: - Table View Data Source
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -41,11 +53,14 @@ class TodoListViewController: SwipeTableViewController {
         
         let cell = super.tableView(tableView, cellForRowAt: indexPath)
         let item = todoItems[indexPath.row]
+        let gradientBGColor = HexColor(parentCategory!.backgroundHexColor)?.darken(byPercentage: CGFloat(indexPath.row + 1) / CGFloat(2 * todoItems.count))
+        let contrastingBGColor = ContrastColorOf(gradientBGColor!, returnFlat: true)
         
         cell.textLabel?.text = item.title
+        cell.backgroundColor = gradientBGColor
+        cell.tintColor = contrastingBGColor
+        cell.textLabel?.textColor = contrastingBGColor
         cell.accessoryType = item.done ? .checkmark : .none
-        cell.backgroundColor = HexColor(parentCategory!.backgroundHexColor)?.darken(byPercentage: CGFloat(indexPath.row + 1) / CGFloat(2 * todoItems.count))
-        cell.textLabel?.textColor = ContrastColorOf(cell.backgroundColor!, returnFlat: true)
         
         return cell
     }
@@ -53,34 +68,31 @@ class TodoListViewController: SwipeTableViewController {
     // MARK: - Table View Delegate
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
-        let item = todoItems[indexPath.row]
-        let cell = tableView.cellForRow(at: indexPath)
+        if let cell = tableView.cellForRow(at: indexPath) {
         
-        if item.done {
-            cell?.accessoryType = .none
-        } else {
-            cell?.accessoryType = .checkmark
-        }
-        
-        do {
-            try realm.write {
-                item.done = !item.done
+            let item = todoItems[indexPath.row]
+            cell.accessoryType = item.done ? .none : .checkmark
+            
+            do {
+                try realm.write {
+                    item.done = !item.done
+                }
+            } catch {
+                print("Error editing item: \(error)")
             }
-        } catch {
-            print("Error editing item: \(error)")
         }
         
         tableView.deselectRow(at: indexPath, animated: true)
     }
 
-    // MARK: - Add New Items to the Todo List
+    // MARK: - Add New Item to the Todo List
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
         
         var textField = UITextField()
         
         let alertController = UIAlertController(title: "Add New Todoey Item", message: "", preferredStyle: .alert)
         
-        let alertAction = UIAlertAction(title: "Add Item", style: .default) { _ in
+        let alertAction = UIAlertAction(title: "Add", style: .default) { _ in
             
             if let currentCategory = self.parentCategory {
 
@@ -101,7 +113,6 @@ class TodoListViewController: SwipeTableViewController {
         }
         
         alertController.addTextField { (alertTextField) in
-            
             textField = alertTextField
             textField.placeholder = "Create new item"
         }
@@ -118,7 +129,6 @@ class TodoListViewController: SwipeTableViewController {
         
         tableView.reloadData()
     }
-    
     
     override func deleteData(at indexPath: IndexPath) {
         
@@ -150,6 +160,7 @@ extension TodoListViewController: UISearchBarDelegate {
 
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
 
+        // clear search when the "x" button is tapped
         if searchText.count == 0 {
 
             loadItems()

@@ -11,7 +11,8 @@ import RealmSwift
 
 class TodoeyCell: Object {
     
-    @objc dynamic var dateCreated = Date()
+    // all todoey cells should have a title and a date created
     @objc dynamic var title = ""
+    @objc dynamic var dateCreated = Date()
     
 }
